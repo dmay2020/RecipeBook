@@ -69,7 +69,6 @@ public:
 		return *this;
 	} inline recipe addStep(std::string argz) { addInstruction(argz); return *this; }
 
-
 private:
 	std::string title;
 	std::string description;
@@ -93,8 +92,34 @@ public:
 
 	std::string getDescription() { return bookDescription; }
 
-	recipeBook addRecipe(recipe input) {
+	recipeBook addRecipe(recipe input, bool feedback = false) {
 		recipes.push_back(input);
+		if (feedback){ std::cout << "Added new recipe '" << input.getTitle() << "' to '" << bookTitle << "'. Recipes added: " << recipes.size() << "\n"; }
+		return *this;
+	}
+
+	recipeBook addTerminalRecipe(bool feedback = false) {
+		std::cout << "Write a title for this new recipe: ";
+		std::string title = "NULL";
+		std::getline(std::cin, title);
+		std::cout << "Now, write a short description: ";
+		std::string description = "NULL";
+		std::getline(std::cin, description);
+		recipe r(title, description);
+		std::cout << "Now, list the ingredients you will need and their measurements:\n";
+		std::vector<std::vector<std::string>> mi = inputMeasurementsAndIngredients();
+		std::cout << "Now, list the steps needed to make this:\n";
+		std::vector<std::string> in = inputInstructions();
+
+		for (int i = 0; i < mi[1].size(); i++) {
+			r.addIngredient(mi[0][i], mi[1][i]);
+		}
+		for (int i = 0; i < in.size(); i++) {
+			r.addInstruction(in[i]);
+		}
+
+		recipes.push_back(r);
+		if (feedback) { std::cout << "Added new recipe '" << r.getTitle() << "' to '" << bookTitle << "'. Recipes added: " << recipes.size() << "\n"; }
 		return *this;
 	}
 
@@ -102,4 +127,53 @@ private:
 	std::string bookTitle;
 	std::string bookDescription;
 	std::vector<recipe> recipes;
+	std::vector<std::vector<std::string>> inputMeasurementsAndIngredients() {
+		std::vector<std::vector<std::string>> measurementsAndIngredients;
+		std::vector<std::string> ingredient;
+		std::vector<std::string> measurement;
+		bool loop = true;
+		while (loop) {
+			std::string input;
+			std::cout << "    Enter the measurement for this ingredient (or Type X to quit): ";
+			std::getline(std::cin, input);
+			if (input == "X") {
+				loop = false;
+			}
+			else {
+				measurement.push_back(input);
+				input = "NULL";
+				std::cout << "    Enter the name of this ingredient (or Type X to cancel and quit): ";
+				std::getline(std::cin, input);
+				if (input == "X") {
+					measurement.pop_back();
+					loop = false;
+				}
+				else {
+					ingredient.push_back(input);
+					std::cout << "    Ingredient added. Total ingredients: [" << ingredient.size() << "]\n";
+				}
+			}
+		}
+		measurementsAndIngredients.push_back(measurement);
+		measurementsAndIngredients.push_back(ingredient);
+
+		return measurementsAndIngredients;
+	}
+	std::vector<std::string> inputInstructions() {
+		std::vector<std::string> instructions;
+		bool loop = true;
+		while (loop) {
+			std::string input = "NULL";
+			std::cout << "    Enter instruction #" << instructions.size() + 1 << " (or Type X to quit): ";
+			std::getline(std::cin, input);
+			if (input == "X") {
+				loop = false;
+			}
+			else {
+				instructions.push_back(input);
+				std::cout << "    Instruction added. Total instructions: [" << instructions.size() << "]\n";
+			}
+		}
+		return instructions;
+	}
 };
